@@ -1,0 +1,55 @@
+﻿@model List< Villa_MVC_Core_Module.Dto.VillaResponseDto>
+@{
+}
+
+<div class="container-fluid p-4 border ">
+
+    <div class="row">
+        <div class="col">
+
+            <div class="text-center text-primary  p-4">
+                <h3>Villa </h3>
+            </div>
+        </div>
+        <div class="col text-end p-1">
+            <a class="btn btn-primary pull-right" asp-controller="Villa" asp-action="Create">Add</a>
+        </div>
+        <div class="col-md-12">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Id</th>
+                        <th>Name</th>
+                        <th>Rate</th>
+                        <th>Area</th>
+                        <th>Occupancy</th>
+                        <th>Amenity</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Any())
+                    {
+                        foreach (var data in Model)
+                        {
+                            <tr>
+                                <td>@data.Id</td>
+                                <td>@data.Name</td>
+                                <td>@data.Rate</td>
+                                <td>@data.Area</td>
+                                <td>@data.Occupancy</td>
+                                <td>@data.Amenity</td>
+                                <td>
+                                    <a class="btn btn-warning" asp-controller="Villa" asp-action="Update" asp-route-Id="@data.Id">Edit</a>
+                                    <a class="btn btn-danger" asp-controller="Villa" asp-action="Delete" asp-route-Id="@data.Id">Delete</a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+
+            </table>
+        </div>
+    </div>
+</div>
+

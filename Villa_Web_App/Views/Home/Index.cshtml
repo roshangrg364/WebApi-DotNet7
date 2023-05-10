@@ -1,0 +1,42 @@
+﻿@model List< Villa_MVC_Core_Module.Dto.VillaResponseDto>
+@{
+}
+@using Microsoft.AspNetCore.Components
+<div class="p-2 d-block ">
+    <img src="~/images/Home/slide1.jpg" alt="image" class="w-100" />
+</div>
+<br />
+<div class="row">
+    @foreach (var villa in Model)
+    {
+        <div class="col-md-6" style="border-radius:10px;border:1px solid white">
+
+            <div class="row">
+                <div class="col-md-4">
+                    <img src="@villa.ImageUrl" class="d-block w-100" alt="image" />
+                </div>
+
+                <div class="col-md-8">
+                    <p class="card-title text-primary" style="font-size:2rem">@villa.Name</p>
+                    <p class="card-text">@((MarkupString)villa.Details)</p>
+                </div>
+
+            </div>
+            <div class="row mt-2">
+                <div class="col-md-4">
+                    <a href="#" class="btn btn-warning">Book</a>
+                </div>
+
+                <div class="col-md-4">
+                    <p>Max-Occupancy :@villa.Occupancy</p>
+                    <p>Size : @villa.Area  Sq Foot  </p>
+                </div>
+                <div class="col-md-4">
+
+                    <p class="text-warning font-weigt-bold">Rate : @villa.Rate   </p>
+                </div>
+            </div>
+        </div>
+    }
+
+</div>

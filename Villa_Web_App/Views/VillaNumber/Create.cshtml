@@ -1,0 +1,30 @@
+﻿@model Villa_MVC_Core_Module.Dto.VillaNumberCreateDto
+@{
+    var villas = ViewBag.Villas as List<Villa_MVC_Core_Module.Dto.VillaResponseDto>;
+}
+
+<div class="container-fluid">
+    <form asp-action="Create">
+        <div class="row">
+            <div class="form-group">
+                <label class="col-md-2">Villa No</label>
+                <input type="text" class="col-md-10 form-control" asp-for="VillaNo" />
+                <span asp-validation-for="VillaNo" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label class="col-md-2">Details</label>
+                <input type="text" class="col-md-10 form-control" asp-for="Details" />
+                <span asp-validation-for="Details" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label class="col-md-2">Villa</label>
+                @Html.DropDownListFor(a=>a.VillaId,new SelectList(villas,"Id","Name"),"--select-",new {@class="form-control"})
+                <span asp-validation-for="VillaId" class="text-danger"></span>
+            </div>
+
+            <button type="submit" class="btn btn-success">Save</button>
+        </div>
+    </form>
+</div>
+

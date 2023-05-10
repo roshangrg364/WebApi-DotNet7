@@ -1,0 +1,52 @@
+﻿@model Villa_MVC_Core_Module.Dto.VillaCreateDto
+@{
+}
+
+<div class="container-fluid">
+    <form asp-action="Create">
+    <div class="row">
+        <div class="form-group">  
+            <label class="col-md-2">Name</label>
+            <input type ="text" class="col-md-10 form-control" asp-for="Name" />
+            <span asp-validation-for="Name" class="text-danger"></span>
+        </div>
+            <div class="form-group">
+                <label class="col-md-2">Area</label>
+                <input type="text" class="col-md-10 form-control" asp-for="Area" />
+                <span asp-validation-for="Area" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label class="col-md-2">Occupancy</label>
+                <input type="text" class="col-md-10 form-control" asp-for="Occupancy" />
+                <span asp-validation-for="Occupancy" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label class="col-md-2">Rate</label>
+                <input type="text" class="col-md-10 form-control" asp-for="Rate" />
+                <span asp-validation-for="Rate" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label class="col-md-2">Amenity</label>
+                <input type="text" class="col-md-10 form-control" asp-for="Amenity" />
+                <span asp-validation-for="Amenity" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label class="col-md-2">Image Url</label>
+                <input type="url" class="col-md-10 form-control" asp-for="ImageUrl" />
+                <span asp-validation-for="ImageUrl" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label class="col-md-2">Details</label>
+                <textarea  class="col-md-10 form-control" asp-for="Details"></textarea>
+                <span asp-validation-for="Details" class="text-danger"></span>
+            </div>
+
+            <button type="submit" class="btn btn-success">Save</button>
+    </div>
+    </form>
+</div>
