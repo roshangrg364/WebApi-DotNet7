@@ -1,4 +1,5 @@
-﻿using CoreModule.UnitOfWork;
+﻿using CoreModule.Src.Service;
+using CoreModule.UnitOfWork;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -15,11 +16,14 @@ namespace CoreModule.Src
     {
         private readonly UnitOfWorkServiceInterface _unitOfWork;
         private readonly UserManager<User> _userManager;
+        private readonly TokenServiceInterface _tokenService;
 
-        public UserService(UnitOfWorkServiceInterface unitOfWork,UserManager<User>userManager)
+        public UserService(UnitOfWorkServiceInterface unitOfWork,UserManager<User>userManager,
+            TokenServiceInterface tokenService)
         {
             _unitOfWork = unitOfWork;
             _userManager = userManager;
+            _tokenService = tokenService;
         }
         public async Task<UserResponseDto> Create(UserCreateDto dto)
         {
@@ -30,7 +34,8 @@ namespace CoreModule.Src
                 var user = new User
                 {
                     UserName = dto.UserName,
-                   FullName = dto.Name
+                   FullName = dto.Name,
+                   SecurityStamp = Guid.NewGuid().ToString(),
                 };
                var response = await _userManager.CreateAsync(user,dto.Password);
                 if (!response.Succeeded) throw new CustomException(string.Join("</br>",response.Errors.SelectMany(a=>a.Description).ToList()));
@@ -63,6 +68,19 @@ namespace CoreModule.Src
                 return true;
             }
             return false;
+        }
+
+        public async Task<string> UpdateRefreshToken(string userId)
+        {
+            using (var tx = await _unitOfWork.BeginTransaction(System.Data.IsolationLevel.ReadCommitted))
+            {
+                var user = await _userManager.FindByIdAsync(userId) ?? throw new CustomException("User not found");
+                var refreshToken = _tokenService.GenerateRefreshToken();
+                user.RefreshToken = refreshToken;
+                await _userManager.UpdateAsync(user);
+                await tx.CommitAsync();
+                return refreshToken;
+            }
         }
     }
 }

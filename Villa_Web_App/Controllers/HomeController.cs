@@ -24,7 +24,7 @@ namespace Villa_Web_App.Controllers
         {
             try
             {
-                var response = await _villaService.GetAllVillas(this.GetToken());
+                var response = await _villaService.GetAllVillas();
                 if (response == null)
                 {
                     return RedirectToAction("Error", "Home");

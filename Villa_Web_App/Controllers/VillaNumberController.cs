@@ -62,7 +62,7 @@ namespace VillaNumber_Web_App.Controllers
         public async Task<IActionResult> Create()
         {
             ViewBag.Villas = new List<VillaResponseDto>();
-            var response = await _villaService.GetAllVillas(this.GetToken());
+            var response = await _villaService.GetAllVillas();
             if (response == null)
             {
                 _toastNotification.AddErrorToastMessage("Error while login.");
@@ -86,7 +86,7 @@ namespace VillaNumber_Web_App.Controllers
             try
             {
                 ViewBag.Villas = new List<VillaResponseDto>();
-                var villasResponse = await _villaService.GetAllVillas(this.GetToken());
+                var villasResponse = await _villaService.GetAllVillas();
                 if (villasResponse == null)
                 {
                     _toastNotification.AddErrorToastMessage("Error while login.");
@@ -129,7 +129,7 @@ namespace VillaNumber_Web_App.Controllers
         public async Task<IActionResult> Update(int id)
         {
             ViewBag.Villas = new List<VillaResponseDto>();
-            var villasResponse = await _villaService.GetAllVillas(this.GetToken());
+            var villasResponse = await _villaService.GetAllVillas();
             if (villasResponse == null)
             {
                 _toastNotification.AddErrorToastMessage("Error while login.");
@@ -162,7 +162,7 @@ namespace VillaNumber_Web_App.Controllers
             try
             {
                 ViewBag.Villas = new List<VillaResponseDto>();
-                var villasResponse = await _villaService.GetAllVillas(this.GetToken());
+                var villasResponse = await _villaService.GetAllVillas();
                 if (villasResponse == null)
                 {
                     _toastNotification.AddErrorToastMessage("Error while login.");

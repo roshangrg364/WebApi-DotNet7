@@ -15,6 +15,6 @@ namespace Villa_MVC_Core_Module.Service
         Task<ResponseModel> Update(VillaUpdateDto dto,string token);
         Task<ResponseModel> Delete(int id,string token);
         Task<ResponseModel> GetById(int id, string token);
-        Task<ResponseModel> GetAllVillas(string token);
+        Task<ResponseModel> GetAllVillas();
     }
 }

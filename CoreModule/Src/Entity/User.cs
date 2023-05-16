@@ -13,6 +13,7 @@ namespace CoreModule.Src
         public static string RoleAdmin = "Admin";
   
         public string FullName { get; set; }
-      
+        public string? RefreshToken { get; set; }
+
     }
 }

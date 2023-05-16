@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,7 +18,7 @@ namespace Villa_MVC_Core_Module.Service
 
         private readonly IHttpClientFactory _httpClient;
         private string _baseUrl = URLDatas.VillaNumberBaseUrl;
-        public VillaNumberService(IHttpClientFactory httpClient) : base(httpClient)
+        public VillaNumberService(IHttpClientFactory httpClient, IHttpContextAccessor httpContextAccessor) : base(httpClient,httpContextAccessor)
         {
         }
         public async Task<ResponseModel> Create(VillaNumberCreateDto dto,string token)

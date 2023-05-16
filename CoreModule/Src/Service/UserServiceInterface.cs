@@ -11,6 +11,7 @@ namespace CoreModule.Src
         Task<bool> IsValidUser(string username);
         Task<UserResponseDto> Create(UserCreateDto dto);
         Task<User> GetByuserName(string username);
+        Task<string> UpdateRefreshToken(string userId);
 
     }
 }

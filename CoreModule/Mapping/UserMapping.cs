@@ -14,6 +14,7 @@ namespace CoreModule.Mapping
         public void Configure(EntityTypeBuilder<User> builder)
         {
             builder.Property(a => a.FullName).IsRequired().HasMaxLength(500);
+            builder.Property(a => a.RefreshToken);
            
         }
     }

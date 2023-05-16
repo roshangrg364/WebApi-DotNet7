@@ -16,6 +16,7 @@ namespace CoreModule.Src
     {
         public UserResponseDto User { get; set; }
         public string Token { get; set; }
+        public string RefreshToken { get; set; }
     }
 
 }

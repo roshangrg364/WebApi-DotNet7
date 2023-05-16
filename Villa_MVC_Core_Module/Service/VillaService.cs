@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,7 +15,7 @@ namespace Villa_MVC_Core_Module.Service
     {
         private readonly IHttpClientFactory _httpClient;
         private string _baseUrl = URLDatas.VillaBaseUrl;
-        public VillaService(IHttpClientFactory httpClient):base(httpClient)
+        public VillaService(IHttpClientFactory httpClient, IHttpContextAccessor httpContextAccessor) :base(httpClient, httpContextAccessor)
         {
         }
         public async Task<ResponseModel> Create(VillaCreateDto dto,string token)
@@ -40,13 +41,12 @@ namespace Villa_MVC_Core_Module.Service
             return response;
         }
 
-        public async Task<ResponseModel> GetAllVillas(string token)
+        public async Task<ResponseModel> GetAllVillas()
         {
             var response = await SendAsync(new ApiRequest
             {
                 Method = ApiType.GET,
-                Url = _baseUrl,
-                Token = token
+                Url = _baseUrl
             });
             return response;
         }

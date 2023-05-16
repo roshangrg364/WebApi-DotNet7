@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using NToastNotify;
 using System.Security.Claims;
+using Villa_MVC_Core_Module.ApiRequestModel;
 using Villa_MVC_Core_Module.Dto;
 using Villa_MVC_Core_Module.Service;
 using Villa_Web_App.Models;
@@ -47,6 +48,7 @@ namespace Villa_Web_App.Controllers
 
                 if (!response.IsSuccess)
                 {
+                   
                     _toastNotification.AddErrorToastMessage(string.Join("</br>", response.Errors.ToList()));
                     return View(model);
                 }
@@ -54,23 +56,17 @@ namespace Villa_Web_App.Controllers
                 var claims = new List<Claim>
         {
             new Claim(ClaimTypes.NameIdentifier, responseModel.User.Id.ToString()),
-            new Claim(ClaimTypes.Role, responseModel.User.Role),
-            new Claim("Token", responseModel.Token)
+            new Claim(ClaimTypes.Role, responseModel.User.Role)
         };
 
                 var claimsIdentity = new ClaimsIdentity(
                     claims, CookieAuthenticationDefaults.AuthenticationScheme);
                 var principal = new ClaimsPrincipal(claimsIdentity);
-                var authProperties = new AuthenticationProperties
-                {
-                    ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(20),
-                    IsPersistent = model.RememberMe
-                };
-
+                HttpContext.Session.SetString(SessionModel.Token, responseModel.Token);
+                HttpContext.Session.SetString(SessionModel.RefreshToken, responseModel.RefreshToken);
                 await HttpContext.SignInAsync(
                CookieAuthenticationDefaults.AuthenticationScheme,
-               principal,
-               authProperties);
+               principal);
                 _toastNotification.AddSuccessToastMessage("logged in successfully");
                 return RedirectToAction("Index", "Home");
             }
@@ -128,6 +124,7 @@ namespace Villa_Web_App.Controllers
 
         public async Task<IActionResult> LogOut()
         {
+            HttpContext.Session.SetString(SessionModel.Token, "");
             await HttpContext.SignOutAsync(
         CookieAuthenticationDefaults.AuthenticationScheme);
             return RedirectToAction(nameof(Login));

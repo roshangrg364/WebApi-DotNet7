@@ -1,8 +1,11 @@
 ﻿using CoreModule.Src;
+using CoreModule.Src.Service;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json.Linq;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Security.Claims;
@@ -11,6 +14,7 @@ using VillaApi.ApiResponseModel;
 
 namespace VillaApi.Controllers
 {
+    [AllowAnonymous]
     [Route("api/v{version:apiVersion}/AccountApi")]
     [ApiController]
     [ApiVersionNeutral]
@@ -19,13 +23,16 @@ namespace VillaApi.Controllers
         private readonly UserServiceInterface _userService;
         private readonly UserManager<User> _userManager;
         private readonly IConfiguration _configuration;
+        private readonly TokenServiceInterface _tokenService;
         public AccountApiController(
             UserServiceInterface userService, IConfiguration configuration,
-            UserManager<User> userManager)
+            UserManager<User> userManager,
+            TokenServiceInterface tokenService)
         {
             _userService = userService;
             _configuration = configuration;
             _userManager = userManager;
+            _tokenService = tokenService;
         }
         [HttpPost("Login")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -40,33 +47,29 @@ namespace VillaApi.Controllers
                 if (user == null) throw new CustomException("Username/password do not match");
                 var isPasswordCorrect = await _userManager.CheckPasswordAsync(user, dto.Password);
                 if (!isPasswordCorrect) throw new CustomException("UserName/Password do not match");
-                var tokenHandler = new JwtSecurityTokenHandler();
-                var secretKey = _configuration.GetValue<string>("JwtConfig:Key");
-                var key = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(secretKey));
+
+
                 var claims = new List<Claim> {
                     new Claim(ClaimTypes.NameIdentifier,user.Id.ToString()),
                     new Claim(ClaimTypes.Role,(await _userManager.GetRolesAsync(user)).FirstOrDefault())
                     };
-                var signingCredential = new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature);
-                var tokenDescriptor = new SecurityTokenDescriptor()
-                {
-                    Subject = new ClaimsIdentity(claims),
-                    Expires = DateTime.UtcNow.AddDays(1),
-                    SigningCredentials = signingCredential
 
-                };
+                var jwtToken = _tokenService.GenerateAccessToken(claims);
+                var refreshToken = await _userService.UpdateRefreshToken(user.Id);
 
-                var token = tokenHandler.CreateToken(tokenDescriptor);
+
                 var returnModel = new LoginResponseDto()
                 {
-                    Token = tokenHandler.WriteToken(token),
-                    User = new UserResponseDto() { 
+                    Token = jwtToken,
+                    RefreshToken = refreshToken,
+                    User = new UserResponseDto()
+                    {
                         Id = user.Id,
                         Name = user.FullName,
                         UserName = user.UserName,
-                        Role =(await _userManager.GetRolesAsync(user).ConfigureAwait(true)).FirstOrDefault()
+                        Role = (await _userManager.GetRolesAsync(user).ConfigureAwait(true)).FirstOrDefault()
                     }
-                    
+
                 };
 
                 return Ok(new ResponseModel { Status = HttpStatusCode.OK, IsSuccess = true, Data = returnModel });
@@ -78,6 +81,53 @@ namespace VillaApi.Controllers
 
             }
         }
+
+
+        [HttpPost("Refresh-Token")]
+        public async Task<IActionResult> RefreshToken(TokenDto tokenModel)
+        {
+            try
+            {
+                if (tokenModel is null)
+                {
+                    return BadRequest("Invalid client request");
+                }
+
+                string? accessToken = tokenModel.AccessToken;
+                string? refreshToken = tokenModel.RefreshToken;
+
+                var principal = _tokenService.GetPrincipalFromExpiredToken(accessToken);
+                if (principal == null)
+                {
+                    throw new CustomException("Invalid token");
+                }
+                string userId = principal.Claims.FirstOrDefault(a=>a.Type == ClaimTypes.NameIdentifier).Value;
+                var user = await _userManager.FindByIdAsync(userId);
+
+                if (user == null || user.RefreshToken != refreshToken)
+                {
+                    throw new CustomException("Invalid Access Token");
+                }
+
+                var newAccessToken = _tokenService.GenerateAccessToken(principal.Claims.ToList());
+                var newRefreshToken = await _userService.UpdateRefreshToken(userId);
+
+                var returnModel = new TokenDto()
+                {
+                    AccessToken = newAccessToken,
+                    RefreshToken = newRefreshToken
+                };
+                return Ok(new ResponseModel { Status = HttpStatusCode.OK, IsSuccess = true, Data=returnModel });
+            }
+            catch (Exception ex)
+            {
+
+                return BadRequest(new ResponseModel { Status = HttpStatusCode.BadRequest, IsSuccess = false, Errors = new List<string> { ex.Message } });
+
+            }
+
+        }
+
 
         [HttpPost("Register")]
         [ProducesResponseType(StatusCodes.Status200OK)]

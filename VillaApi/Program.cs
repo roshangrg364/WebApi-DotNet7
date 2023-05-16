@@ -1,12 +1,15 @@
 using CoreModule.DbContextConfig;
 using CoreModule.Src;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Newtonsoft.Json;
 using System.Text;
 using VillaApi;
+using VillaApi.ApiResponseModel;
 using VillaApi.DBMapper;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -26,6 +29,7 @@ builder.Services.Configure<IdentityOptions>(options =>
     options.SignIn.RequireConfirmedEmail = false;
 
 });
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddControllers(options =>
 {
     options.CacheProfiles.Add("Default30", new CacheProfile { Duration = 30 });
@@ -61,20 +65,22 @@ builder.Services.AddSwaggerGen(opt =>
             new string[]{}
         }
     });
-    opt.SwaggerDoc("v1", new OpenApiInfo {
-    Version ="v1.0",
-    Title = "Villa Api Version 1",
-    Description = "Api with rest pattern",
-    TermsOfService = new Uri("https://examples.com"),
-    Contact = new OpenApiContact { 
-    Name="Roshan Gurung",
-    Url=new Uri("https://examples.com")
-    },
-    License =  new OpenApiLicense
+    opt.SwaggerDoc("v1", new OpenApiInfo
     {
-        Name = "Example License",
-        Url= new Uri("https://license.com")
-    }
+        Version = "v1.0",
+        Title = "Villa Api Version 1",
+        Description = "Api with rest pattern",
+        TermsOfService = new Uri("https://examples.com"),
+        Contact = new OpenApiContact
+        {
+            Name = "Roshan Gurung",
+            Url = new Uri("https://examples.com")
+        },
+        License = new OpenApiLicense
+        {
+            Name = "Example License",
+            Url = new Uri("https://license.com")
+        }
 
     });
 
@@ -113,7 +119,49 @@ builder.Services.AddAuthentication(a =>
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(key)),
         ValidateIssuer = false,
-        ValidateAudience = false
+        ValidateAudience = false,
+        ClockSkew = TimeSpan.Zero
+    };
+    x.Events = new JwtBearerEvents
+    {
+        OnAuthenticationFailed = context =>
+        {
+            if (context.Exception.GetType() == typeof(SecurityTokenExpiredException))
+            {
+
+                context.Response.Headers.Add("IS-TOKEN-EXPIRED", "true");
+                context.Response.ContentType = "application/json";
+                var data = new ResponseModel
+                {
+                    Status = System.Net.HttpStatusCode.Unauthorized,
+                    Errors = new List<string> {
+                   {
+                        "UnAuthorized"
+                   }
+                    },
+                    IsSuccess = false,
+                    IsTokenExpired = true
+                };
+                context.Response.WriteAsync(JsonConvert.SerializeObject(data));
+
+            }
+            else
+            {
+                context.Response.ContentType = "application/json";
+                var data = new ResponseModel
+                {
+                    Status = System.Net.HttpStatusCode.Unauthorized,
+                    Errors = new List<string> {
+                   {
+                      "UnAuthorized"
+                   } },
+                    IsSuccess = false,
+                };
+                context.Response.WriteAsync(JsonConvert.SerializeObject(data));
+            }
+
+            return Task.CompletedTask;
+        }
     };
 });
 
@@ -123,7 +171,8 @@ builder.Services.AddApiVersioning(options =>
     options.DefaultApiVersion = new ApiVersion(1, 0);
     options.ReportApiVersions = true;
 });
-builder.Services.AddVersionedApiExplorer(options=>{
+builder.Services.AddVersionedApiExplorer(options =>
+{
     options.GroupNameFormat = "'v'VVV";
     options.SubstituteApiVersionInUrl = true;
 });
